@@ -15,6 +15,12 @@
                     <x-nav-link :href="route('dashboard')" :active="request()->routeIs('dashboard')">
                         {{ __('Dashboard') }}
                     </x-nav-link>
+                    <x-nav-link :href="route('availabilities.index')" :active="request()->routeIs('availabilities.*')">
+                        {{ __('My Availability') }}
+                    </x-nav-link>
+                    <x-nav-link :href="route('padel-sessions.index')" :active="request()->routeIs('padel-sessions.*')">
+                        {{ __('Sessions') }}
+                    </x-nav-link>
                 </div>
             </div>
 
@@ -69,6 +75,12 @@
         <div class="pt-2 pb-3 space-y-1">
             <x-responsive-nav-link :href="route('dashboard')" :active="request()->routeIs('dashboard')">
                 {{ __('Dashboard') }}
+            </x-responsive-nav-link>
+            <x-responsive-nav-link :href="route('availabilities.index')" :active="request()->routeIs('availabilities.*')">
+                {{ __('My Availability') }}
+            </x-responsive-nav-link>
+            <x-responsive-nav-link :href="route('padel-sessions.index')" :active="request()->routeIs('padel-sessions.*')">
+                {{ __('Sessions') }}
             </x-responsive-nav-link>
         </div>
 

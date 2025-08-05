@@ -1,15 +1,170 @@
 <x-app-layout>
     <x-slot name="header">
         <h2 class="font-semibold text-xl text-gray-800 dark:text-gray-200 leading-tight">
-            {{ __('Dashboard') }}
+            {{ __('SETS Dashboard') }}
         </h2>
     </x-slot>
 
     <div class="py-12">
         <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
-            <div class="bg-white dark:bg-gray-800 overflow-hidden shadow-sm sm:rounded-lg">
-                <div class="p-6 text-gray-900 dark:text-gray-100">
-                    {{ __("You're logged in!") }}
+            <!-- Stats Cards -->
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+                <div class="bg-white dark:bg-gray-800 overflow-hidden shadow-sm sm:rounded-lg">
+                    <div class="p-6">
+                        <div class="text-sm font-medium text-gray-500 dark:text-gray-400">Total Sessions</div>
+                        <div class="text-2xl font-bold text-gray-900 dark:text-gray-100">{{ $stats['total_sessions'] }}</div>
+                    </div>
+                </div>
+                <div class="bg-white dark:bg-gray-800 overflow-hidden shadow-sm sm:rounded-lg">
+                    <div class="p-6">
+                        <div class="text-sm font-medium text-gray-500 dark:text-gray-400">Total Matches</div>
+                        <div class="text-2xl font-bold text-gray-900 dark:text-gray-100">{{ $stats['total_matches'] }}</div>
+                    </div>
+                </div>
+                <div class="bg-white dark:bg-gray-800 overflow-hidden shadow-sm sm:rounded-lg">
+                    <div class="p-6">
+                        <div class="text-sm font-medium text-gray-500 dark:text-gray-400">Sessions (30 days)</div>
+                        <div class="text-2xl font-bold text-gray-900 dark:text-gray-100">{{ $stats['recent_sessions'] }}</div>
+                    </div>
+                </div>
+                <div class="bg-white dark:bg-gray-800 overflow-hidden shadow-sm sm:rounded-lg">
+                    <div class="p-6">
+                        <div class="text-sm font-medium text-gray-500 dark:text-gray-400">Matches (30 days)</div>
+                        <div class="text-2xl font-bold text-gray-900 dark:text-gray-100">{{ $stats['recent_matches'] }}</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                <!-- Upcoming Sessions -->
+                <div class="bg-white dark:bg-gray-800 overflow-hidden shadow-sm sm:rounded-lg">
+                    <div class="p-6">
+                        <h3 class="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">Upcoming Sessions</h3>
+                        @if($upcomingSessions->count() > 0)
+                            <div class="space-y-4">
+                                @foreach($upcomingSessions as $session)
+                                    <div class="border border-gray-200 dark:border-gray-700 rounded-lg p-4">
+                                        <div class="flex justify-between items-start">
+                                            <div>
+                                                <h4 class="font-medium text-gray-900 dark:text-gray-100">{{ $session->location }}</h4>
+                                                <p class="text-sm text-gray-500 dark:text-gray-400">
+                                                    {{ $session->start_time->toEuropeanDateTime() }} - {{ $session->end_time->toEuropeanTime() }}
+                                                </p>
+                                                <p class="text-sm text-gray-500 dark:text-gray-400">
+                                                    Status: <span class="capitalize">{{ $session->status }}</span>
+                                                </p>
+                                            </div>
+                                            <a href="{{ route('padel-sessions.show', $session) }}" 
+                                               class="text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 text-sm">
+                                                View
+                                            </a>
+                                        </div>
+                                    </div>
+                                @endforeach
+                            </div>
+                        @else
+                            <p class="text-gray-500 dark:text-gray-400">No upcoming sessions.</p>
+                        @endif
+
+                    </div>
+                </div>
+
+                <!-- Recent Matches -->
+                <div class="bg-white dark:bg-gray-800 overflow-hidden shadow-sm sm:rounded-lg">
+                    <div class="p-6">
+                        <h3 class="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">Recent Matches</h3>
+                        @if($recentMatches->count() > 0)
+                            <div class="space-y-4">
+                                @foreach($recentMatches as $match)
+                                    <div class="border border-gray-200 dark:border-gray-700 rounded-lg p-4">
+                                        <div class="flex justify-between items-center">
+                                            <div>
+                                                <h4 class="font-medium text-gray-900 dark:text-gray-100">
+                                                    Match #{{ $match->match_number }}
+                                                </h4>
+                                                <p class="text-sm text-gray-500 dark:text-gray-400">
+                                                    {{ $match->session->location }}
+                                                </p>
+                                                @if($match->isCompleted())
+                                                    <p class="text-sm font-medium text-gray-900 dark:text-gray-100">
+                                                        Score: {{ $match->getScoreString() }}
+                                                    </p>
+                                                @endif
+                                            </div>
+                                            <span class="text-sm text-gray-500 dark:text-gray-400 capitalize">
+                                                {{ $match->status }}
+                                            </span>
+                                        </div>
+                                    </div>
+                                @endforeach
+                            </div>
+                        @else
+                            <p class="text-gray-500 dark:text-gray-400">No recent matches.</p>
+                        @endif
+                    </div>
+                </div>
+            </div>
+
+            <!-- Pending Invitations -->
+            @if($pendingInvitations->count() > 0)
+                <div class="mt-8 bg-white dark:bg-gray-800 overflow-hidden shadow-sm sm:rounded-lg">
+                    <div class="p-6">
+                        <h3 class="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">Pending Invitations</h3>
+                        <div class="space-y-4">
+                            @foreach($pendingInvitations as $invitation)
+                                <div class="border border-gray-200 dark:border-gray-700 rounded-lg p-4">
+                                    <div class="flex justify-between items-center">
+                                        <div>
+                                            <h4 class="font-medium text-gray-900 dark:text-gray-100">
+                                                {{ $invitation->session->location }}
+                                            </h4>
+                                            <p class="text-sm text-gray-500 dark:text-gray-400">
+                                                {{ $invitation->session->start_time->toEuropeanDateTime() }} - {{ $invitation->session->end_time->toEuropeanTime() }}
+                                            </p>
+                                            <p class="text-sm text-gray-500 dark:text-gray-400">
+                                                Invited by: {{ $invitation->invitedBy->name }}
+                                            </p>
+                                        </div>
+                                        <div class="flex space-x-2">
+                                            <form method="POST" action="{{ route('session-invitations.accept', $invitation) }}" class="inline">
+                                                @csrf
+                                                <button type="submit" class="px-3 py-1 bg-green-600 text-white text-xs rounded hover:bg-green-700">
+                                                    Accept
+                                                </button>
+                                            </form>
+                                            <form method="POST" action="{{ route('session-invitations.decline', $invitation) }}" class="inline">
+                                                @csrf
+                                                <button type="submit" class="px-3 py-1 bg-red-600 text-white text-xs rounded hover:bg-red-700">
+                                                    Decline
+                                                </button>
+                                            </form>
+                                        </div>
+                                    </div>
+                                </div>
+                            @endforeach
+                        </div>
+                    </div>
+                </div>
+            @endif
+
+            <!-- Quick Actions -->
+            <div class="mt-8 bg-white dark:bg-gray-800 overflow-hidden shadow-sm sm:rounded-lg">
+                <div class="p-6">
+                    <h3 class="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">Quick Actions</h3>
+                    <div class="flex flex-wrap gap-4">
+                        <a href="{{ route('availabilities.index') }}" 
+                           class="inline-flex items-center px-4 py-2 bg-green-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-green-700">
+                            Manage Availability
+                        </a>
+                        <a href="{{ route('availabilities.index') }}" 
+                           class="inline-flex items-center px-4 py-2 bg-gray-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-gray-700">
+                            View My Availability
+                        </a>
+                        <a href="{{ route('padel-sessions.index') }}" 
+                           class="inline-flex items-center px-4 py-2 bg-blue-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-blue-700">
+                            View All Sessions
+                        </a>
+                    </div>
                 </div>
             </div>
         </div>
