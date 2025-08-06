@@ -146,27 +146,6 @@
                     </div>
                 </div>
             @endif
-
-            <!-- Quick Actions -->
-            <div class="mt-8 bg-white dark:bg-gray-800 overflow-hidden shadow-sm sm:rounded-lg">
-                <div class="p-6">
-                    <h3 class="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">Quick Actions</h3>
-                    <div class="flex flex-wrap gap-4">
-                        <a href="{{ route('availabilities.index') }}" 
-                           class="inline-flex items-center px-4 py-2 bg-green-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-green-700">
-                            Manage Availability
-                        </a>
-                        <a href="{{ route('availabilities.index') }}" 
-                           class="inline-flex items-center px-4 py-2 bg-gray-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-gray-700">
-                            View My Availability
-                        </a>
-                        <a href="{{ route('padel-sessions.index') }}" 
-                           class="inline-flex items-center px-4 py-2 bg-blue-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-blue-700">
-                            View All Sessions
-                        </a>
-                    </div>
-                </div>
-            </div>
         </div>
     </div>
 </x-app-layout>
