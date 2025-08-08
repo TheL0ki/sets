@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Api\AvailabilityController;
+use App\Http\Controllers\PlayerIgnoreController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -25,4 +26,9 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::apiResource('availabilities', AvailabilityController::class);
     Route::get('/availabilities/overlapping', [AvailabilityController::class, 'overlapping'])
         ->name('api.availabilities.overlapping');
+
+    // Player Ignore API routes
+    Route::get('/player-ignores', [PlayerIgnoreController::class, 'apiIndex'])->name('api.player-ignores.index');
+    Route::post('/player-ignores', [PlayerIgnoreController::class, 'apiStore'])->name('api.player-ignores.store');
+    Route::delete('/player-ignores/{ignoredId}', [PlayerIgnoreController::class, 'apiDestroy'])->name('api.player-ignores.destroy');
 }); 

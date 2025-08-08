@@ -23,7 +23,6 @@ class SessionInvitation extends Model
         'invited_by',
         'status',
         'responded_at',
-        'notes',
     ];
 
     /**

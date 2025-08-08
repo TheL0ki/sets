@@ -17,7 +17,6 @@ return new class extends Migration
             $table->dateTime('start_time');
             $table->dateTime('end_time');
             $table->boolean('is_available')->default(true);
-            $table->text('notes')->nullable();
             $table->timestamps();
 
             // Indexes for performance

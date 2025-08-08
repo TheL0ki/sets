@@ -17,7 +17,6 @@ return new class extends Migration
             $table->foreignId('user_id')->constrained()->onDelete('cascade');
             $table->enum('status', ['invited', 'confirmed', 'declined', 'cancelled'])->default('invited');
             $table->dateTime('confirmed_at')->nullable();
-            $table->text('notes')->nullable();
             $table->timestamps();
 
             // Indexes for performance

@@ -53,12 +53,30 @@ class AvailabilityController extends Controller
         
         // Get existing availabilities for the week
         $weekEnd = $weekStart->copy()->endOfWeek();
-        $existingAvailabilities = $user->availabilities()
+        $userAvailabilities = $user->availabilities()
             ->whereBetween('start_time', [$weekStart, $weekEnd])
-            ->get()
-            ->keyBy(function ($availability) {
-                return $availability->start_time->format('Y-m-d-H-i');
-            });
+            ->get();
+
+        // Create a collection to check if each 30-minute slot is available
+        $existingAvailabilities = collect();
+        
+        // For each day and time slot, check if it falls within any availability window
+        foreach ($weekDays as $day) {
+            foreach ($timeSlots as $timeSlot) {
+                $slotStart = $day['date']->copy()->setTimeFrom($timeSlot['start']);
+                $slotKey = $slotStart->format('Y-m-d-H-i');
+                
+                // Check if this 30-minute slot falls within any availability window
+                $isAvailable = $userAvailabilities->contains(function ($availability) use ($slotStart) {
+                    return $availability->start_time <= $slotStart && 
+                           $availability->end_time > $slotStart;
+                });
+                
+                if ($isAvailable) {
+                    $existingAvailabilities->put($slotKey, true);
+                }
+            }
+        }
 
         return view('availabilities.index', compact('timeSlots', 'weekDays', 'existingAvailabilities', 'weekStart'));
     }
@@ -75,7 +93,9 @@ class AvailabilityController extends Controller
         $request->validate([
             'week_start' => 'required|date',
             'availabilities' => 'array',
-            'availabilities.*' => 'string|regex:/^\d{4}-\d{2}-\d{2}-\d{2}-\d{2}$/'
+            'availabilities.*' => 'string|regex:/^\d{4}-\d{2}-\d{2}-\d{2}-\d{2}$/',
+            'mobile_availabilities' => 'array',
+            'mobile_availabilities.*' => 'string|regex:/^\d{4}-\d{2}-\d{2}-\d{2}-\d{2}$/'
         ]);
         
         $weekStart = \Carbon\Carbon::parse($request->input('week_start'));
@@ -87,9 +107,14 @@ class AvailabilityController extends Controller
             ->delete();
         
         // Create new availabilities
-        $availabilities = $request->input('availabilities', []);
+        $desktopAvailabilities = $request->input('availabilities', []);
+        $mobileAvailabilities = $request->input('mobile_availabilities', []);
+        
+        // Combine both arrays and remove duplicates
+        $availabilities = array_unique(array_merge($desktopAvailabilities, $mobileAvailabilities));
         $createdCount = 0;
         
+        // Store each selected 30-minute slot as individual availability
         foreach ($availabilities as $timeSlot) {
             // Parse time slot format: YYYY-MM-DD-HH-MM
             $parts = explode('-', $timeSlot);

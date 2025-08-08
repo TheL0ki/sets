@@ -32,7 +32,6 @@ class PadelMatch extends Model
         'team_a_score',
         'team_b_score',
         'status',
-        'notes',
         'started_at',
         'completed_at',
     ];

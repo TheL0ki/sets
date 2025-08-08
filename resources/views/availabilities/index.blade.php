@@ -2,7 +2,7 @@
     <x-slot name="header">
         <div class="flex justify-between items-center">
             <h2 class="font-semibold text-xl text-gray-800 dark:text-gray-200 leading-tight">
-                {{ __('My Availability') }}
+                My Availability
             </h2>
             <div class="hidden lg:flex space-x-2">
                 <a href="{{ route('availabilities.index', ['week' => $weekStart->copy()->subWeek()->format('Y-m-d')]) }}" 
@@ -114,7 +114,7 @@
                                             </span>
                                             <label class="flex items-center cursor-pointer">
                                                 <input type="checkbox" 
-                                                       name="availabilities[]" 
+                                                       name="mobile_availabilities[]" 
                                                        value="{{ $slotKey }}"
                                                        {{ $isAvailable ? 'checked' : '' }}
                                                        class="sr-only mobile-availability-checkbox"
@@ -134,7 +134,7 @@
                         </div>
 
                         <!-- Legend and Actions -->
-                        <div class="mt-6 flex flex-col sm:flex-row justify-between items-start sm:items-center space-y-4 sm:space-y-0">
+                        <div class="mt-6 flex flex-col sm:flex-row justify-around items-start sm:items-center space-y-4 sm:space-y-0">
                             <div class="flex items-center space-x-4 text-sm text-gray-600 dark:text-gray-400">
                                 <div class="flex items-center space-x-2">
                                     <div class="w-4 h-4 bg-gray-100 dark:bg-gray-600 rounded"></div>
@@ -146,7 +146,7 @@
                                 </div>
                             </div>
                             
-                            <div class="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-3 w-full">
+                            <div class="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-3 w-full justify-end">
                                 <button type="button" 
                                         onclick="selectAll()"
                                         class="w-full sm:w-auto inline-flex items-center justify-center px-4 py-2 bg-blue-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-blue-700">

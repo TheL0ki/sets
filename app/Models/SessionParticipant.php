@@ -22,7 +22,6 @@ class SessionParticipant extends Model
         'user_id',
         'status',
         'confirmed_at',
-        'notes',
     ];
 
     /**

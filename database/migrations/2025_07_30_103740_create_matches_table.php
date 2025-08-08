@@ -18,7 +18,6 @@ return new class extends Migration
             $table->integer('team_a_score')->default(0);
             $table->integer('team_b_score')->default(0);
             $table->enum('status', ['pending', 'confirmed', 'cancelled', 'completed'])->default('pending');
-            $table->text('notes')->nullable();
             $table->dateTime('started_at')->nullable();
             $table->dateTime('completed_at')->nullable();
             $table->timestamps();

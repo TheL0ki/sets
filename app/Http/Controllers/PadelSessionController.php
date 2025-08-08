@@ -135,6 +135,11 @@ class PadelSessionController extends Controller
 
         $participant->delete();
 
+        $padelSession->status = PadelSession::STATUS_CANCELLED;
+        $padelSession->save();
+
+        $user->availabilities()->where('start_time', '>=', $padelSession->start_time)->where('end_time', '<=', $padelSession->end_time)->delete();
+
         return redirect()
             ->route('padel-sessions.index')
             ->with('success', 'You have left the session successfully.');
@@ -192,6 +197,11 @@ class PadelSessionController extends Controller
             'status' => SessionInvitation::STATUS_DECLINED,
             'responded_at' => now(),
         ]);
+
+        $invitation->session->status = PadelSession::STATUS_CANCELLED;
+        $invitation->session->save();
+
+        $user->availabilities()->where('start_time', '>=', $invitation->session->start_time)->where('end_time', '<=', $invitation->session->end_time)->delete();
 
         return redirect()
             ->route('dashboard')

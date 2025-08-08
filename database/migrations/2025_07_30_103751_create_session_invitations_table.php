@@ -18,7 +18,6 @@ return new class extends Migration
             $table->foreignId('invited_by')->constrained('users')->onDelete('cascade');
             $table->enum('status', ['pending', 'accepted', 'declined', 'expired'])->default('pending');
             $table->dateTime('responded_at')->nullable();
-            $table->text('notes')->nullable();
             $table->timestamps();
 
             // Indexes for performance

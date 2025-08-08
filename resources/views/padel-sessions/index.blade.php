@@ -1,7 +1,7 @@
 <x-app-layout>
     <x-slot name="header">
         <h2 class="font-semibold text-xl text-gray-800 dark:text-gray-200 leading-tight">
-            {{ __('Padel Sessions') }}
+            Padel Sessions
         </h2>
     </x-slot>
 
@@ -24,9 +24,6 @@
                                     </div>
                                     <p class="text-sm text-gray-500 dark:text-gray-400 mb-2">
                                         {{ $invitation->session->start_time->toEuropeanDateTime() }} - {{ $invitation->session->end_time->toEuropeanTime() }}
-                                    </p>
-                                    <p class="text-sm text-gray-500 dark:text-gray-400 mb-3">
-                                        Invited by {{ $invitation->session->creator->name }}
                                     </p>
                                     <div class="flex space-x-2">
                                         <form method="POST" action="{{ route('session-invitations.accept', $invitation) }}" class="inline">

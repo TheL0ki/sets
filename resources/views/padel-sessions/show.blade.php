@@ -52,10 +52,6 @@
                             </span>
                         </div>
                         <div>
-                            <p class="text-sm text-gray-500 dark:text-gray-400">Created by</p>
-                            <p class="text-lg font-medium text-gray-900 dark:text-gray-100">{{ $padelSession->creator->name }}</p>
-                        </div>
-                        <div>
                             <p class="text-sm text-gray-500 dark:text-gray-400">Players</p>
                             <p class="text-lg font-medium text-gray-900 dark:text-gray-100">
                                 {{ $padelSession->participants()->count() }}/{{ $padelSession->max_players }}
@@ -110,7 +106,7 @@
                     <div class="p-6">
                         <div class="flex justify-between items-center mb-4">
                             <h3 class="text-lg font-semibold text-gray-900 dark:text-gray-100">Matches</h3>
-                            @if($padelSession->created_by === auth()->id() && $padelSession->participants()->count() >= 4)
+                            @if($padelSession->participants()->count() >= 4)
                                 <a href="{{ route('padel-sessions.padel-matches.create', $padelSession) }}" 
                                    class="inline-flex items-center px-3 py-1 bg-blue-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-blue-700">
                                     Add Match

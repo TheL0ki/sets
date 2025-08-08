@@ -12,7 +12,8 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('availabilities', function (Blueprint $table) {
-            $table->dropColumn('notes');
+            // Add unique constraint to prevent duplicate availabilities for the same user and time slot
+            $table->unique(['user_id', 'start_time', 'end_time'], 'unique_user_availability_slot');
         });
     }
 
@@ -22,7 +23,7 @@ return new class extends Migration
     public function down(): void
     {
         Schema::table('availabilities', function (Blueprint $table) {
-            $table->text('notes')->nullable();
+            $table->dropUnique('unique_user_availability_slot');
         });
     }
 };

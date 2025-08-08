@@ -17,9 +17,6 @@ return new class extends Migration
             $table->dateTime('end_time');
             $table->string('location');
             $table->enum('status', ['pending', 'confirmed', 'cancelled', 'completed'])->default('pending');
-            $table->text('notes')->nullable();
-            $table->foreignId('created_by')->constrained('users')->onDelete('cascade');
-            $table->integer('max_players')->default(8);
             $table->timestamps();
 
             // Indexes for performance

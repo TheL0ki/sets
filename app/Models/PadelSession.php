@@ -30,7 +30,6 @@ class PadelSession extends Model
         'end_time',
         'location',
         'status',
-        'notes',
         'created_by',
         'max_players',
     ];
