@@ -8,6 +8,9 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Events\Updated;
+use App\Models\SessionParticipant;
+use App\Models\SessionInvitation;
 
 class PadelSession extends Model
 {
@@ -195,5 +198,47 @@ class PadelSession extends Model
         if ($this->allInvitationsAccepted() && $this->hasExactPlayerCount()) {
             $this->update(['status' => self::STATUS_CONFIRMED]);
         }
+    }
+
+    /**
+     * Boot the model and register event listeners.
+     */
+    protected static function boot()
+    {
+        parent::boot();
+
+        // Send cancellation notifications when session is cancelled
+        static::updated(function ($session) {
+            if ($session->wasChanged('status') && $session->status === self::STATUS_CANCELLED) {
+                $session->sendCancellationNotifications();
+            }
+        });
+    }
+
+    /**
+     * Send cancellation notifications to all participants.
+     */
+    public function sendCancellationNotifications(?string $reason = null): void
+    {
+        $invitations = $this->invitations()
+            ->with('user')
+            ->whereIn('status', [SessionInvitation::STATUS_ACCEPTED, SessionInvitation::STATUS_PENDING])
+            ->get();
+
+        foreach ($invitations as $invitation) {
+            // Check if user has cancellation notifications enabled
+            if ($invitation->user->hasSessionCancellationNotificationsEnabled()) {
+                $invitation->user->notify(new \App\Notifications\SessionCancellationNotification($this, $reason));
+            }
+        }
+    }
+
+    /**
+     * Manually cancel the session and send notifications.
+     */
+    public function cancelSession(?string $reason = null): void
+    {
+        $this->update(['status' => self::STATUS_CANCELLED]);
+        $this->sendCancellationNotifications($reason);
     }
 } 

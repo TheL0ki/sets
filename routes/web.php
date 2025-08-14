@@ -2,7 +2,9 @@
 
 use App\Http\Controllers\AvailabilityController;
 use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\EmailActionController;
 use App\Http\Controllers\MatchmakingController;
+use App\Http\Controllers\NotificationSettingsController;
 use App\Http\Controllers\PadelMatchController;
 use App\Http\Controllers\PadelSessionController;
 use App\Http\Controllers\PlayerIgnoreController;
@@ -10,6 +12,10 @@ use App\Http\Controllers\ProfileController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', [DashboardController::class, 'index'])
+    ->middleware(['auth', 'verified'])
+    ->name('dashboard');
+
+Route::get('/dashboard', [DashboardController::class, 'index'])
     ->middleware(['auth', 'verified'])
     ->name('dashboard');
 
@@ -56,6 +62,31 @@ Route::middleware('auth')->group(function () {
     Route::get('/player-ignores/create', [PlayerIgnoreController::class, 'create'])->name('player-ignores.create');
     Route::post('/player-ignores', [PlayerIgnoreController::class, 'store'])->name('player-ignores.store');
     Route::delete('/player-ignores/{ignoredId}', [PlayerIgnoreController::class, 'destroy'])->name('player-ignores.destroy');
+
+    // Notification Settings routes
+    Route::get('/notification-settings', [NotificationSettingsController::class, 'index'])->name('notification-settings.index');
+    Route::patch('/notification-settings', [NotificationSettingsController::class, 'update'])->name('notification-settings.update');
 });
+
+// Email Action routes (signed URLs for email notifications)
+Route::get('/session-invitation/accept/{session}/{invitation}', [EmailActionController::class, 'acceptInvitation'])
+    ->name('session.invitation.accept')
+    ->middleware('signed');
+
+Route::get('/session-invitation/decline/{session}/{invitation}', [EmailActionController::class, 'declineInvitation'])
+    ->name('session.invitation.decline')
+    ->middleware('signed');
+
+Route::get('/session-invitation/view/{session}', [EmailActionController::class, 'viewSession'])
+    ->name('session.invitation.view')
+    ->middleware('signed');
+
+Route::get('/session-confirmed/view/{session}', [EmailActionController::class, 'viewConfirmedSession'])
+    ->name('session.confirmed.view')
+    ->middleware('signed');
+
+Route::get('/session-reminder/view/{session}', [EmailActionController::class, 'viewReminderSession'])
+    ->name('session.reminder.view')
+    ->middleware('signed');
 
 require __DIR__.'/auth.php';

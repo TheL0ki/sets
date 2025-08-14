@@ -33,6 +33,11 @@ class User extends Authenticatable
         'max_session_length_hours',
         'phone',
         'is_active',
+        'email_notifications_enabled',
+        'session_invitation_notifications',
+        'session_confirmation_notifications',
+        'session_reminder_notifications',
+        'session_cancellation_notifications',
     ];
 
     /**
@@ -56,6 +61,11 @@ class User extends Authenticatable
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
             'is_active' => 'boolean',
+            'email_notifications_enabled' => 'boolean',
+            'session_invitation_notifications' => 'boolean',
+            'session_confirmation_notifications' => 'boolean',
+            'session_reminder_notifications' => 'boolean',
+            'session_cancellation_notifications' => 'boolean',
         ];
     }
 
@@ -216,5 +226,76 @@ class User extends Authenticatable
                              });
                    })
                    ->get();
+    }
+
+    /**
+     * Check if email notifications are enabled for this user.
+     */
+    public function hasEmailNotificationsEnabled(): bool
+    {
+        return $this->email_notifications_enabled;
+    }
+
+    /**
+     * Check if session invitation notifications are enabled for this user.
+     */
+    public function hasSessionInvitationNotificationsEnabled(): bool
+    {
+        return $this->email_notifications_enabled && $this->session_invitation_notifications;
+    }
+
+    /**
+     * Check if session confirmation notifications are enabled for this user.
+     */
+    public function hasSessionConfirmationNotificationsEnabled(): bool
+    {
+        return $this->email_notifications_enabled && $this->session_confirmation_notifications;
+    }
+
+    /**
+     * Check if session reminder notifications are enabled for this user.
+     */
+    public function hasSessionReminderNotificationsEnabled(): bool
+    {
+        return $this->email_notifications_enabled && $this->session_reminder_notifications;
+    }
+
+    /**
+     * Check if session cancellation notifications are enabled for this user.
+     */
+    public function hasSessionCancellationNotificationsEnabled(): bool
+    {
+        return $this->email_notifications_enabled && $this->session_cancellation_notifications;
+    }
+
+    /**
+     * Override the sendNotification method to check user preferences.
+     */
+    public function sendNotification($notification)
+    {
+        // Check if the user has email notifications enabled
+        if (!$this->hasEmailNotificationsEnabled()) {
+            return;
+        }
+
+        // Check specific notification type preferences
+        if ($notification instanceof \App\Notifications\SessionInvitationNotification && !$this->hasSessionInvitationNotificationsEnabled()) {
+            return;
+        }
+
+        if ($notification instanceof \App\Notifications\SessionConfirmationNotification && !$this->hasSessionConfirmationNotificationsEnabled()) {
+            return;
+        }
+
+        if ($notification instanceof \App\Notifications\SessionReminderNotification && !$this->hasSessionReminderNotificationsEnabled()) {
+            return;
+        }
+
+        if ($notification instanceof \App\Notifications\SessionCancellationNotification && !$this->hasSessionCancellationNotificationsEnabled()) {
+            return;
+        }
+
+        // If all checks pass, send the notification
+        parent::sendNotification($notification);
     }
 }
