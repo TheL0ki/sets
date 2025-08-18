@@ -416,7 +416,6 @@ class MatchmakingService
                     SessionInvitation::create([
                         'session_id' => $session->id,
                         'user_id' => $player->id,
-                        'invited_by' => $selectedPlayers->first()->id,
                         'status' => SessionInvitation::STATUS_PENDING,
                     ]);
                 }

@@ -183,21 +183,56 @@ class PadelSession extends Model
      */
     public function allInvitationsAccepted(): bool
     {
-        $pendingInvitations = $this->invitations()
-            ->where('status', SessionInvitation::STATUS_PENDING)
+        $acceptedInvitations = $this->invitations()
+            ->where('status', SessionInvitation::STATUS_ACCEPTED)
             ->count();
         
-        return $pendingInvitations === 0;
+        return $acceptedInvitations === 4;
+    }
+
+    /**
+     * Get the count of pending invitations.
+     */
+    public function getPendingInvitationsCount(): int
+    {
+        return $this->invitations()
+            ->where('status', SessionInvitation::STATUS_PENDING)
+            ->count();
+    }
+
+    /**
+     * Get the count of accepted invitations.
+     */
+    public function getAcceptedInvitationsCount(): int
+    {
+        return $this->invitations()
+            ->where('status', SessionInvitation::STATUS_ACCEPTED)
+            ->count();
+    }
+
+    /**
+     * Check and update session confirmation status.
+     * This method centralizes the logic for confirming sessions.
+     */
+    public function checkAndUpdateConfirmationStatus(): void
+    {
+        $acceptedCount = $this->invitations()
+            ->where('status', SessionInvitation::STATUS_ACCEPTED)
+            ->count();
+
+        if ($acceptedCount === 4) {
+            $this->update(['status' => self::STATUS_CONFIRMED]);
+            $this->sendConfirmationNotifications();
+        }
     }
 
     /**
      * Confirm the session when all invitations are accepted.
+     * @deprecated Use checkAndUpdateConfirmationStatus() instead
      */
     public function confirmSession(): void
     {
-        if ($this->allInvitationsAccepted() && $this->hasExactPlayerCount()) {
-            $this->update(['status' => self::STATUS_CONFIRMED]);
-        }
+        $this->checkAndUpdateConfirmationStatus();
     }
 
     /**
@@ -213,6 +248,23 @@ class PadelSession extends Model
                 $session->sendCancellationNotifications();
             }
         });
+    }
+
+    /**
+     * Send confirmation notifications to all accepted participants.
+     */
+    public function sendConfirmationNotifications(): void
+    {
+        $invitations = $this->invitations()
+            ->with('user')
+            ->where('status', SessionInvitation::STATUS_ACCEPTED)
+            ->get();
+
+        foreach ($invitations as $invitation) {
+            if ($invitation->user->hasSessionConfirmationNotificationsEnabled()) {
+                $invitation->user->notify(new \App\Notifications\SessionConfirmationNotification($this));
+            }
+        }
     }
 
     /**

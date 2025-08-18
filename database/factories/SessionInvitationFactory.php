@@ -29,7 +29,6 @@ class SessionInvitationFactory extends Factory
         return [
             'session_id' => PadelSession::factory(),
             'user_id' => User::factory(),
-            'invited_by' => User::factory(),
             'status' => SessionInvitation::STATUS_PENDING,
             'responded_at' => null,
         ];

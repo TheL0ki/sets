@@ -26,7 +26,6 @@ test('session invitation notification is sent when invitation is created', funct
     $invitation = SessionInvitation::create([
         'session_id' => $session->id,
         'user_id' => $user->id,
-        'invited_by' => $creator->id,
         'status' => SessionInvitation::STATUS_PENDING,
     ]);
 
@@ -49,25 +48,21 @@ test('session confirmation notification is sent when all invitations are accepte
         SessionInvitation::create([
             'session_id' => $session->id,
             'user_id' => $user1->id,
-            'invited_by' => $creator->id,
             'status' => SessionInvitation::STATUS_PENDING,
         ]),
         SessionInvitation::create([
             'session_id' => $session->id,
             'user_id' => $user2->id,
-            'invited_by' => $creator->id,
             'status' => SessionInvitation::STATUS_PENDING,
         ]),
         SessionInvitation::create([
             'session_id' => $session->id,
             'user_id' => $user3->id,
-            'invited_by' => $creator->id,
             'status' => SessionInvitation::STATUS_PENDING,
         ]),
         SessionInvitation::create([
             'session_id' => $session->id,
             'user_id' => $user4->id,
-            'invited_by' => $creator->id,
             'status' => SessionInvitation::STATUS_PENDING,
         ]),
     ];
@@ -103,14 +98,12 @@ test('session cancellation notification is sent when session is cancelled', func
     SessionInvitation::create([
         'session_id' => $session->id,
         'user_id' => $user1->id,
-        'invited_by' => $creator->id,
         'status' => SessionInvitation::STATUS_ACCEPTED,
     ]);
 
     SessionInvitation::create([
         'session_id' => $session->id,
         'user_id' => $user2->id,
-        'invited_by' => $creator->id,
         'status' => SessionInvitation::STATUS_PENDING,
     ]);
 
@@ -140,19 +133,16 @@ test('session is automatically cancelled when insufficient participants', functi
         SessionInvitation::create([
             'session_id' => $session->id,
             'user_id' => $user1->id,
-            'invited_by' => $creator->id,
             'status' => SessionInvitation::STATUS_PENDING,
         ]),
         SessionInvitation::create([
             'session_id' => $session->id,
             'user_id' => $user2->id,
-            'invited_by' => $creator->id,
             'status' => SessionInvitation::STATUS_PENDING,
         ]),
         SessionInvitation::create([
             'session_id' => $session->id,
             'user_id' => $user3->id,
-            'invited_by' => $creator->id,
             'status' => SessionInvitation::STATUS_PENDING,
         ]),
     ];
@@ -181,7 +171,6 @@ test('user preferences are respected when sending notifications', function () {
     $invitation = SessionInvitation::create([
         'session_id' => $session->id,
         'user_id' => $user->id,
-        'invited_by' => $creator->id,
         'status' => SessionInvitation::STATUS_PENDING,
     ]);
 
@@ -191,34 +180,56 @@ test('user preferences are respected when sending notifications', function () {
 
 test('specific notification preferences are respected', function () {
     $creator = User::factory()->create();
-    $user = User::factory()->create([
+    $user1 = User::factory()->create([
         'email_notifications_enabled' => true,
         'session_invitation_notifications' => false,
         'session_confirmation_notifications' => true,
     ]);
+    $user2 = User::factory()->create();
+    $user3 = User::factory()->create();
+    $user4 = User::factory()->create();
 
     $session = PadelSession::factory()->create([
         'status' => PadelSession::STATUS_PENDING,
     ]);
 
-    $invitation = SessionInvitation::create([
-        'session_id' => $session->id,
-        'user_id' => $user->id,
-        'invited_by' => $creator->id,
-        'status' => SessionInvitation::STATUS_PENDING,
-    ]);
+    // Create 4 invitations
+    $invitations = [
+        SessionInvitation::create([
+            'session_id' => $session->id,
+            'user_id' => $user1->id,
+            'status' => SessionInvitation::STATUS_PENDING,
+        ]),
+        SessionInvitation::create([
+            'session_id' => $session->id,
+            'user_id' => $user2->id,
+            'status' => SessionInvitation::STATUS_PENDING,
+        ]),
+        SessionInvitation::create([
+            'session_id' => $session->id,
+            'user_id' => $user3->id,
+            'status' => SessionInvitation::STATUS_PENDING,
+        ]),
+        SessionInvitation::create([
+            'session_id' => $session->id,
+            'user_id' => $user4->id,
+            'status' => SessionInvitation::STATUS_PENDING,
+        ]),
+    ];
 
-    // Invitation notification should not be sent
-    Notification::assertNotSentTo($user, SessionInvitationNotification::class);
+    // Invitation notification should not be sent to user1 (disabled)
+    Notification::assertNotSentTo($user1, SessionInvitationNotification::class);
 
-    // Accept the invitation
-    $invitation->update([
-        'status' => SessionInvitation::STATUS_ACCEPTED,
-        'responded_at' => now(),
-    ]);
+    // Accept all invitations
+    foreach ($invitations as $invitation) {
+        $invitation->update([
+            'status' => SessionInvitation::STATUS_ACCEPTED,
+            'responded_at' => now(),
+        ]);
+    }
 
-    // Confirmation notification should be sent
-    Notification::assertSentTo($user, SessionConfirmationNotification::class);
+    // Confirmation notification should be sent to user1 (enabled)
+    Notification::assertSentTo($user1, SessionConfirmationNotification::class);
 });
 
 test('email action routes work correctly', function () {

@@ -58,7 +58,6 @@ class PadelSessionController extends Controller
             SessionInvitation::create([
                 'session_id' => $session->id,
                 'user_id' => $playerId,
-                'invited_by' => $data['created_by'] ?? 1,
                 'status' => SessionInvitation::STATUS_PENDING,
             ]);
         }
@@ -171,9 +170,9 @@ class PadelSessionController extends Controller
             'confirmed_at' => now(),
         ]);
 
-        // Check if session should be confirmed (all invitations accepted and exactly 4 players)
+        // Check if session should be confirmed
         $session = $invitation->session;
-        $session->confirmSession();
+        $session->checkAndUpdateConfirmationStatus();
 
         return redirect()
             ->route('padel-sessions.show', $invitation->session)

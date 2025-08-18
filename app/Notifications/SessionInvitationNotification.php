@@ -22,8 +22,7 @@ class SessionInvitationNotification extends Notification implements ShouldQueue
      */
     public function __construct(
         protected PadelSession $session,
-        protected SessionInvitation $invitation,
-        protected User $invitedBy
+        protected SessionInvitation $invitation
     ) {}
 
     /**
@@ -79,7 +78,6 @@ class SessionInvitationNotification extends Notification implements ShouldQueue
         return [
             'session_id' => $this->session->id,
             'invitation_id' => $this->invitation->id,
-            'invited_by' => $this->invitedBy->id,
             'session_start_time' => $this->session->start_time,
             'session_location' => $this->session->location,
         ];

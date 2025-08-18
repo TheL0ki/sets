@@ -104,14 +104,6 @@ class User extends Authenticatable
     }
 
     /**
-     * Get the session invitations sent by this user.
-     */
-    public function sentSessionInvitations(): HasMany
-    {
-        return $this->hasMany(SessionInvitation::class, 'invited_by');
-    }
-
-    /**
      * Get the matches where this user is a player.
      */
     public function matchPlayers(): HasMany

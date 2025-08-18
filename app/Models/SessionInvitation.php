@@ -21,7 +21,6 @@ class SessionInvitation extends Model
     protected $fillable = [
         'session_id',
         'user_id',
-        'invited_by',
         'status',
         'responded_at',
     ];
@@ -57,14 +56,6 @@ class SessionInvitation extends Model
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
-    }
-
-    /**
-     * Get the user who sent this invitation.
-     */
-    public function invitedBy(): BelongsTo
-    {
-        return $this->belongsTo(User::class, 'invited_by');
     }
 
     /**
@@ -184,13 +175,9 @@ class SessionInvitation extends Model
             return;
         }
 
-        // For testing purposes, use the first user as creator if no creator exists
-        $creator = $session->creator ?? \App\Models\User::first() ?? $this->user;
-
         $this->user->notify(new \App\Notifications\SessionInvitationNotification(
             $session,
-            $this,
-            $creator
+            $this
         ));
     }
 
@@ -204,19 +191,9 @@ class SessionInvitation extends Model
             return;
         }
 
-        // Check if all invitations have been accepted
+        // Check if session should be confirmed when invitation is accepted
         if ($this->status === self::STATUS_ACCEPTED) {
-            $allAccepted = $session->invitations()
-                ->where('status', '!=', self::STATUS_DECLINED)
-                ->count() === $session->invitations()->count();
-
-            if ($allAccepted) {
-                // Update session status to confirmed
-                $session->update(['status' => \App\Models\PadelSession::STATUS_CONFIRMED]);
-
-                // Send confirmation notifications to all accepted participants
-                $this->sendConfirmationNotifications($session);
-            }
+            $session->checkAndUpdateConfirmationStatus();
         }
 
         // Check if session should be cancelled due to insufficient participants
@@ -234,22 +211,7 @@ class SessionInvitation extends Model
         }
     }
 
-    /**
-     * Send confirmation notifications to all accepted participants.
-     */
-    private function sendConfirmationNotifications(\App\Models\PadelSession $session): void
-    {
-        $invitations = $session->invitations()
-            ->with('user')
-            ->accepted()
-            ->get();
 
-        foreach ($invitations as $invitation) {
-            if ($invitation->user->hasSessionConfirmationNotificationsEnabled()) {
-                $invitation->user->notify(new \App\Notifications\SessionConfirmationNotification($session));
-            }
-        }
-    }
 
     /**
      * Send cancellation notifications to all participants.

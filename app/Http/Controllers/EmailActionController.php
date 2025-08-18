@@ -41,18 +41,8 @@ class EmailActionController extends Controller
                 'responded_at' => now(),
             ]);
 
-            // Check if all invitations have been accepted
-            $allAccepted = $session->invitations()
-                ->where('status', '!=', SessionInvitation::STATUS_DECLINED)
-                ->count() === $session->invitations()->count();
-
-            if ($allAccepted) {
-                // Update session status to confirmed
-                $session->update(['status' => PadelSession::STATUS_CONFIRMED]);
-
-                // Send confirmation notifications to all participants
-                $this->sendConfirmationNotifications($session);
-            }
+            // Check if session should be confirmed
+            $session->checkAndUpdateConfirmationStatus();
 
             return redirect()->route('padel-sessions.show', $session)
                 ->with('success', 'Invitation accepted successfully!');
@@ -184,20 +174,7 @@ class EmailActionController extends Controller
         return view('padel-sessions.show', compact('session'))->with('padelSession', $session);
     }
 
-    /**
-     * Send confirmation notifications to all participants.
-     */
-    private function sendConfirmationNotifications(PadelSession $session): void
-    {
-        $invitations = $session->invitations()
-            ->with('user')
-            ->accepted()
-            ->get();
 
-        foreach ($invitations as $invitation) {
-            $invitation->user->notify(new \App\Notifications\SessionConfirmationNotification($session));
-        }
-    }
 
     /**
      * Send cancellation notifications to all participants.

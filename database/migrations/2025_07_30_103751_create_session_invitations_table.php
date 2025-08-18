@@ -15,7 +15,6 @@ return new class extends Migration
             $table->id();
             $table->foreignId('session_id')->constrained('padel_sessions')->onDelete('cascade');
             $table->foreignId('user_id')->constrained()->onDelete('cascade');
-            $table->foreignId('invited_by')->constrained('users')->onDelete('cascade');
             $table->enum('status', ['pending', 'accepted', 'declined', 'expired'])->default('pending');
             $table->dateTime('responded_at')->nullable();
             $table->timestamps();
@@ -23,7 +22,6 @@ return new class extends Migration
             // Indexes for performance
             $table->index(['session_id', 'user_id']);
             $table->index(['user_id', 'status']);
-            $table->index('invited_by');
             $table->index('responded_at');
 
             // Ensure unique invitation per session per user

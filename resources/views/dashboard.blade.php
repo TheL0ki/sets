@@ -121,9 +121,6 @@
                                             <p class="text-sm text-gray-500 dark:text-gray-400">
                                                 {{ $invitation->session->start_time->toEuropeanDateTime() }} - {{ $invitation->session->end_time->toEuropeanTime() }}
                                             </p>
-                                            <p class="text-sm text-gray-500 dark:text-gray-400">
-                                                Invited by: {{ $invitation->invitedBy->name }}
-                                            </p>
                                         </div>
                                         <div class="flex space-x-2">
                                             <form method="POST" action="{{ route('session-invitations.accept', $invitation) }}" class="inline">

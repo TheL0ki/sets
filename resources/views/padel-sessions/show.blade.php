@@ -43,18 +43,12 @@
                         </div>
                         <div>
                             <p class="text-sm text-gray-500 dark:text-gray-400">Status</p>
-                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium 
-                                @if($padelSession->status === 'confirmed') bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200
-                                @elseif($padelSession->status === 'pending') bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200
-                                @elseif($padelSession->status === 'cancelled') bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200
-                                @else bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-200 @endif">
-                                {{ ucfirst($padelSession->status) }}
-                            </span>
+                            <x-statusBadge :status="$padelSession->status" />
                         </div>
                         <div>
                             <p class="text-sm text-gray-500 dark:text-gray-400">Players</p>
                             <p class="text-lg font-medium text-gray-900 dark:text-gray-100">
-                                {{ $padelSession->participants()->count() }}/{{ $padelSession->max_players }}
+                                {{ $padelSession->participants()->count() }}/4
                             </p>
                         </div>
                     </div>
@@ -74,10 +68,33 @@
                         <div class="flex justify-between items-center mb-4">
                             <h3 class="text-lg font-semibold text-gray-900 dark:text-gray-100">Participants</h3>
                             <span class="text-sm text-gray-500 dark:text-gray-400">
-                                {{ $padelSession->participants()->count() }}/{{ $padelSession->max_players }}
+                                {{ $padelSession->participants()->count() }}/4
                             </span>
                         </div>
-                        @if($padelSession->participants->count() > 0)
+                        
+                        @if($padelSession->status === 'pending')
+                            <div class="space-y-3">
+                                @foreach($padelSession->invitations as $invitation)
+                                <div class="flex justify-between items-center p-3 border border-gray-200 dark:border-gray-700 rounded-lg">
+                                    <div>
+                                        <p class="font-medium text-gray-900 dark:text-gray-100">{{ $invitation->user->name }}</p>
+                                        <p class="text-sm text-gray-500 dark:text-gray-400">
+                                            Status: <x-statusBadge :status="$invitation->status" />
+                                        </p>
+                                    </div>
+                                    @if($invitation->responded_at)
+                                        <span class="text-xs text-gray-500 dark:text-gray-400" title="{{ $invitation->responded_at->format('d.m.Y H:i:s') }}">
+                                            Confirmed {{ $invitation->responded_at->diffForHumans() }}
+                                        </span>
+                                    @else
+                                        <span class="text-xs text-gray-500 dark:text-gray-400" title="{{ $invitation->created_at->format('d.m.Y H:i:s') }}">
+                                            Invited {{ $invitation->created_at->diffForHumans() }}
+                                        </span>
+                                    @endif
+                                </div>
+                                @endforeach
+                            </div>
+                        @else
                             <div class="space-y-3">
                                 @foreach($padelSession->participants as $participant)
                                     <div class="flex justify-between items-center p-3 border border-gray-200 dark:border-gray-700 rounded-lg">
@@ -95,8 +112,6 @@
                                     </div>
                                 @endforeach
                             </div>
-                        @else
-                            <p class="text-gray-500 dark:text-gray-400">No participants yet.</p>
                         @endif
                     </div>
                 </div>

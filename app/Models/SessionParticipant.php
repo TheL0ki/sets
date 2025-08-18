@@ -122,12 +122,7 @@ class SessionParticipant extends Model
     {
         parent::boot();
 
-        // Send invitation notification when a new participant is created
-        static::created(function ($participant) {
-            if ($participant->status === self::STATUS_INVITED) {
-                $participant->sendInvitationNotification();
-            }
-        });
+        // No invitation notification needed for participants - they are already part of the session
 
         // Send confirmation/cancellation notifications when status changes
         static::updated(function ($participant) {
@@ -137,30 +132,7 @@ class SessionParticipant extends Model
         });
     }
 
-    /**
-     * Send invitation notification to the participant.
-     */
-    public function sendInvitationNotification(): void
-    {
-        $session = $this->session()->first();
-        if (!$session) {
-            return;
-        }
 
-        // Check if user has invitation notifications enabled
-        if (!$this->user->hasSessionInvitationNotificationsEnabled()) {
-            return;
-        }
-
-        // For testing purposes, use the first user as creator if no creator exists
-        $creator = $session->creator ?? User::first() ?? $this->user;
-
-        $this->user->notify(new \App\Notifications\SessionInvitationNotification(
-            $session,
-            $this,
-            $creator
-        ));
-    }
 
     /**
      * Handle status change notifications.
