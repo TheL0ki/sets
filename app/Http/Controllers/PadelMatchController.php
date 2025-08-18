@@ -22,7 +22,7 @@ class PadelMatchController extends Controller
     {
         $matches = $padel_session->matches()
             ->with(['matchPlayers.user'])
-            ->orderBy('match_number')
+            ->orderBy('created_at', 'asc')
             ->get();
 
         return view('padel-matches.index', compact('padel_session', 'matches'));
@@ -68,28 +68,30 @@ class PadelMatchController extends Controller
         }
 
         $request->validate([
-            'match_number' => 'required|integer|min:1',
             'team_a_players' => 'required|array|size:2',
             'team_b_players' => 'required|array|size:2',
             'team_a_players.*' => 'exists:users,id',
             'team_b_players.*' => 'exists:users,id',
+            'team_a_score' => 'required|integer|min:0|max:20',
+            'team_b_score' => 'required|integer|min:0|max:20',
         ]);
 
-        // Check if match number already exists
-        $existingMatch = $padel_session->matches()
-            ->where('match_number', $request->input('match_number'))
-            ->first();
-
-        if ($existingMatch) {
+        // Check for duplicate players
+        $allPlayers = array_merge($request->input('team_a_players'), $request->input('team_b_players'));
+        if (count(array_unique($allPlayers)) !== count($allPlayers)) {
             return back()
                 ->withInput()
-                ->withErrors(['match_number' => 'A match with this number already exists in this session.']);
+                ->withErrors(['team_a_players' => 'Each player can only be assigned to one team.']);
         }
+
+        // Get next match number using helper method
+        $nextMatchNumber = PadelMatch::getNextMatchNumber($padel_session->id);
 
         // Create the match
         $match = $padel_session->matches()->create([
-            'match_number' => $request->input('match_number'),
-            'status' => PadelMatch::STATUS_PENDING,
+            'match_number' => $nextMatchNumber,
+            'team_a_score' => $request->input('team_a_score'),
+            'team_b_score' => $request->input('team_b_score'),
         ]);
 
         // Add team A players
@@ -98,7 +100,6 @@ class PadelMatchController extends Controller
                 'match_id' => $match->id,
                 'user_id' => $playerId,
                 'team' => MatchPlayer::TEAM_A,
-                'confirmed_at' => now(),
             ]);
         }
 
@@ -108,7 +109,6 @@ class PadelMatchController extends Controller
                 'match_id' => $match->id,
                 'user_id' => $playerId,
                 'team' => MatchPlayer::TEAM_B,
-                'confirmed_at' => now(),
             ]);
         }
 
@@ -168,21 +168,47 @@ class PadelMatchController extends Controller
         }
 
         $request->validate([
-            'team_a_score' => 'nullable|integer|min:0',
-            'team_b_score' => 'nullable|integer|min:0',
-            'status' => 'required|in:pending,confirmed,cancelled,completed',
-            'notes' => 'nullable|string|max:1000',
+            'team_a_players' => 'required|array|size:2',
+            'team_b_players' => 'required|array|size:2',
+            'team_a_players.*' => 'exists:users,id',
+            'team_b_players.*' => 'exists:users,id',
+            'team_a_score' => 'required|integer|min:0|max:20',
+            'team_b_score' => 'required|integer|min:0|max:20',
         ]);
 
-        $padel_match->update($request->only(['team_a_score', 'team_b_score', 'status', 'notes']));
-
-        // Update timestamps based on status
-        if ($request->input('status') === PadelMatch::STATUS_CONFIRMED && !$padel_match->started_at) {
-            $padel_match->update(['started_at' => now()]);
+        // Check for duplicate players
+        $allPlayers = array_merge($request->input('team_a_players'), $request->input('team_b_players'));
+        if (count(array_unique($allPlayers)) !== count($allPlayers)) {
+            return back()
+                ->withInput()
+                ->withErrors(['team_a_players' => 'Each player can only be assigned to one team.']);
         }
 
-        if ($request->input('status') === PadelMatch::STATUS_COMPLETED && !$padel_match->completed_at) {
-            $padel_match->update(['completed_at' => now()]);
+        // Update match scores
+        $padel_match->update([
+            'team_a_score' => $request->input('team_a_score'),
+            'team_b_score' => $request->input('team_b_score'),
+        ]);
+
+        // Update team assignments
+        $padel_match->matchPlayers()->delete();
+        
+        // Add team A players
+        foreach ($request->input('team_a_players') as $playerId) {
+            MatchPlayer::create([
+                'match_id' => $padel_match->id,
+                'user_id' => $playerId,
+                'team' => MatchPlayer::TEAM_A,
+            ]);
+        }
+
+        // Add team B players
+        foreach ($request->input('team_b_players') as $playerId) {
+            MatchPlayer::create([
+                'match_id' => $padel_match->id,
+                'user_id' => $playerId,
+                'team' => MatchPlayer::TEAM_B,
+            ]);
         }
 
         return redirect()
@@ -210,62 +236,5 @@ class PadelMatchController extends Controller
         return redirect()
             ->route('padel-sessions.show', $padel_session)
             ->with('success', 'Match deleted successfully.');
-    }
-
-    /**
-     * Start a match.
-     */
-    public function start(Request $request, PadelSession $padel_session, PadelMatch $padel_match): RedirectResponse
-    {
-        // Ensure user is a confirmed participant in the session
-        $participant = $padel_session->participants()
-            ->where('user_id', $request->user()->id)
-            ->where('status', SessionParticipant::STATUS_CONFIRMED)
-            ->first();
-
-        if (!$participant) {
-            abort(403, 'You must be a confirmed participant to start matches.');
-        }
-
-        $padel_match->update([
-            'status' => PadelMatch::STATUS_CONFIRMED,
-            'started_at' => now(),
-        ]);
-
-        return redirect()
-            ->route('padel-sessions.show', $padel_session)
-            ->with('success', 'Match started successfully.');
-    }
-
-    /**
-     * Complete a match with scores.
-     */
-    public function complete(Request $request, PadelSession $padel_session, PadelMatch $padel_match): RedirectResponse
-    {
-        // Ensure user is a confirmed participant in the session
-        $participant = $padel_session->participants()
-            ->where('user_id', $request->user()->id)
-            ->where('status', SessionParticipant::STATUS_CONFIRMED)
-            ->first();
-
-        if (!$participant) {
-            abort(403, 'You must be a confirmed participant to complete matches.');
-        }
-
-        $request->validate([
-            'team_a_score' => 'required|integer|min:0',
-            'team_b_score' => 'required|integer|min:0',
-        ]);
-
-        $padel_match->update([
-            'team_a_score' => $request->input('team_a_score'),
-            'team_b_score' => $request->input('team_b_score'),
-            'status' => PadelMatch::STATUS_COMPLETED,
-            'completed_at' => now(),
-        ]);
-
-        return redirect()
-            ->route('padel-sessions.show', $padel_session)
-            ->with('success', 'Match completed successfully.');
     }
 }

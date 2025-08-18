@@ -16,13 +16,11 @@ return new class extends Migration
             $table->foreignId('match_id')->constrained('matches')->onDelete('cascade');
             $table->foreignId('user_id')->constrained()->onDelete('cascade');
             $table->enum('team', ['A', 'B']);
-            $table->dateTime('confirmed_at')->nullable();
             $table->timestamps();
 
             // Indexes for performance
             $table->index(['match_id', 'user_id']);
             $table->index(['match_id', 'team']);
-            $table->index('confirmed_at');
 
             // Ensure unique player per match
             $table->unique(['match_id', 'user_id']);

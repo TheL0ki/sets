@@ -29,18 +29,8 @@ class DashboardController extends Controller
 
         // Get recent matches
         $recentMatches = $user->matches()
-            ->whereHas('session', function ($query) {
-                $query->where('start_time', '<', now());
-            })
             ->orderByDesc('created_at')
-            ->limit(5)
-            ->get();
-
-        // Get user's recent availabilities
-        $recentAvailabilities = $user->availabilities()
-            ->where('start_time', '>', now())
-            ->orderBy('start_time')
-            ->limit(5)
+            ->limit(3)
             ->get();
 
         // Get pending session invitations
@@ -68,7 +58,6 @@ class DashboardController extends Controller
         return view('dashboard', compact(
             'upcomingSessions',
             'recentMatches',
-            'recentAvailabilities',
             'pendingInvitations',
             'stats'
         ));

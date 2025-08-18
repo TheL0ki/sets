@@ -52,10 +52,6 @@ Route::middleware('auth')->group(function () {
 
     // Padel Match routes (nested under sessions)
     Route::resource('padel-sessions.padel-matches', PadelMatchController::class);
-    Route::post('/padel-sessions/{padel_session}/padel-matches/{padel_match}/start', [PadelMatchController::class, 'start'])
-        ->name('padel-matches.start');
-    Route::post('/padel-sessions/{padel_session}/padel-matches/{padel_match}/complete', [PadelMatchController::class, 'complete'])
-        ->name('padel-matches.complete');
 
     // Player Ignore routes
     Route::get('/player-ignores', [PlayerIgnoreController::class, 'index'])->name('player-ignores.index');

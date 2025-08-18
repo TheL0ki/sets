@@ -76,27 +76,56 @@
                         @if($recentMatches->count() > 0)
                             <div class="space-y-4">
                                 @foreach($recentMatches as $match)
-                                    <div class="border border-gray-200 dark:border-gray-700 rounded-lg p-4">
-                                        <div class="flex justify-between items-center">
-                                            <div>
-                                                <h4 class="font-medium text-gray-900 dark:text-gray-100">
-                                                    Match #{{ $match->match_number }}
-                                                </h4>
-                                                <p class="text-sm text-gray-500 dark:text-gray-400">
-                                                    {{ $match->session->location }}
-                                                </p>
-                                                @if($match->isCompleted())
-                                                    <p class="text-sm font-medium text-gray-900 dark:text-gray-100">
-                                                        Score: {{ $match->getScoreString() }}
-                                                    </p>
-                                                @endif
-                                            </div>
-                                            <span class="text-sm text-gray-500 dark:text-gray-400 capitalize">
-                                                {{ $match->status }}
-                                            </span>
-                                        </div>
+                                <div class="border border-gray-200 dark:border-gray-700 rounded-lg p-4">
+                                    <div class="flex justify-between items-start mb-3">
+                                        <h4 class="font-medium text-gray-900 dark:text-gray-100">
+                                            <a href="{{ route('padel-sessions.show', $match->session) }}" class="text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300">
+                                                {{ $match->session->location }} - {{ $match->session->start_time->toEuropeanDate() }}
+                                            </a>
+                                        </h4>
                                     </div>
-                                @endforeach
+                                    <table class="w-full">
+                                        <tr>
+                                            <td class="w-1/3 align-top">
+                                                <div class="text-xs">
+                                                    <p class="text-gray-500 dark:text-gray-400 font-medium mb-2 text-left">Team A</p>
+                                                </div>
+                                            </td>
+                                            <td class="w-1/3 align-top text-center">
+                                                <div class="text-xs">
+                                                    <p class="text-gray-500 dark:text-gray-400 font-medium mb-2 ">Score</p>
+                                                </div>
+                                            </td>
+                                            <td class="w-1/3 align-top">
+                                                <div class="text-xs">
+                                                    <p class="text-gray-500 dark:text-gray-400 font-medium mb-2 text-right">Team B</p>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td class="w-1/3 align-top">
+                                                <div class="space-y-1">
+                                                    @foreach($match->matchPlayers->where('team', 'A') as $player)
+                                                        <p class="text-sm text-gray-900 dark:text-gray-100 text-left">{{ $player->user->name }}</p>
+                                                    @endforeach
+                                                </div> 
+                                            </td>
+                                            <td class="w-1/3 align-middle text-center">
+                                                <p class="text-2xl font-bold text-gray-900 dark:text-gray-100">
+                                                    {{ $match->getScoreString() }}
+                                                </p>
+                                            </td>
+                                            <td class="w-1/3 align-top">
+                                                <div class="space-y-1">
+                                                    @foreach($match->matchPlayers->where('team', 'B') as $player)
+                                                        <p class="text-sm text-gray-900 dark:text-gray-100 text-right">{{ $player->user->name }}</p>
+                                                    @endforeach
+                                                </div> 
+                                            </td>
+                                        </tr>
+                                    </table>
+                                </div>
+                            @endforeach
                             </div>
                         @else
                             <p class="text-gray-500 dark:text-gray-400">No recent matches.</p>

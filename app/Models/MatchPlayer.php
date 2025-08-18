@@ -21,16 +21,6 @@ class MatchPlayer extends Model
         'match_id',
         'user_id',
         'team',
-        'confirmed_at',
-    ];
-
-    /**
-     * The attributes that should be cast.
-     *
-     * @var array<string, string>
-     */
-    protected $casts = [
-        'confirmed_at' => 'datetime',
     ];
 
     /**
@@ -54,31 +44,7 @@ class MatchPlayer extends Model
     {
         return $this->belongsTo(User::class);
     }
-
-    /**
-     * Check if the player has confirmed their participation.
-     */
-    public function isConfirmed(): bool
-    {
-        return $this->confirmed_at !== null;
-    }
-
-    /**
-     * Scope to get only confirmed players.
-     */
-    public function scopeConfirmed($query)
-    {
-        return $query->whereNotNull('confirmed_at');
-    }
-
-    /**
-     * Scope to get only unconfirmed players.
-     */
-    public function scopeUnconfirmed($query)
-    {
-        return $query->whereNull('confirmed_at');
-    }
-
+    
     /**
      * Scope to get players by team.
      */

@@ -136,9 +136,6 @@ class TestDataSeeder extends Seeder
             'match_number' => 1,
             'team_a_score' => 6,
             'team_b_score' => 4,
-            'status' => PadelMatch::STATUS_COMPLETED,
-            'started_at' => now()->addDays(1)->setTime(18, 0),
-            'completed_at' => now()->addDays(1)->setTime(19, 30),
         ]);
 
         // Add players to the match

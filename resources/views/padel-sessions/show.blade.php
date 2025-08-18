@@ -71,7 +71,7 @@
                                 {{ $padelSession->participants()->count() }}/4
                             </span>
                         </div>
-                        
+
                         @if($padelSession->status === 'pending')
                             <div class="space-y-3">
                                 @foreach($padelSession->invitations as $invitation)
@@ -105,7 +105,7 @@
                                             </p>
                                         </div>
                                         @if($participant->confirmed_at)
-                                            <span class="text-xs text-gray-500 dark:text-gray-400">
+                                            <span class="text-xs text-gray-500 dark:text-gray-400" title="{{ $participant->confirmed_at->format('d.m.Y H:i:s') }}">
                                                 Confirmed {{ $participant->confirmed_at->diffForHumans() }}
                                             </span>
                                         @endif
@@ -121,7 +121,7 @@
                     <div class="p-6">
                         <div class="flex justify-between items-center mb-4">
                             <h3 class="text-lg font-semibold text-gray-900 dark:text-gray-100">Matches</h3>
-                            @if($padelSession->participants()->count() >= 4)
+                            @if($padelSession->participants()->count() >= 4 && $padelSession->participants()->where('user_id', auth()->id())->exists())
                                 <a href="{{ route('padel-sessions.padel-matches.create', $padelSession) }}" 
                                    class="inline-flex items-center px-3 py-1 bg-blue-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-blue-700">
                                     Add Match
@@ -129,55 +129,59 @@
                             @endif
                         </div>
                         @if($padelSession->matches->count() > 0)
-                            <div class="space-y-3">
+                            <div class="space-y-4">
                                 @foreach($padelSession->matches as $match)
                                     <div class="border border-gray-200 dark:border-gray-700 rounded-lg p-4">
-                                        <div class="flex justify-between items-start mb-2">
+                                        <div class="flex justify-between items-start mb-3">
                                             <h4 class="font-medium text-gray-900 dark:text-gray-100">
                                                 Match #{{ $match->match_number }}
                                             </h4>
-                                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium 
-                                                @if($match->status === 'completed') bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200
-                                                @elseif($match->status === 'confirmed') bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200
-                                                @else bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-200 @endif">
-                                                {{ ucfirst($match->status) }}
-                                            </span>
-                                        </div>
-                                        @if($match->isCompleted())
-                                            <p class="text-sm font-medium text-gray-900 dark:text-gray-100 mb-2">
-                                                Score: {{ $match->getScoreString() }}
-                                            </p>
-                                        @endif
-                                        <div class="grid grid-cols-2 gap-4 text-sm">
-                                            <div>
-                                                <p class="text-gray-500 dark:text-gray-400">Team A</p>
-                                                <div class="space-y-1">
-                                                    @foreach($match->matchPlayers->where('team', 'A') as $player)
-                                                        <p class="text-gray-900 dark:text-gray-100">{{ $player->user->name }}</p>
-                                                    @endforeach
-                                                </div>
-                                            </div>
-                                            <div>
-                                                <p class="text-gray-500 dark:text-gray-400">Team B</p>
-                                                <div class="space-y-1">
-                                                    @foreach($match->matchPlayers->where('team', 'B') as $player)
-                                                        <p class="text-gray-900 dark:text-gray-100">{{ $player->user->name }}</p>
-                                                    @endforeach
-                                                </div>
-                                            </div>
-                                        </div>
-                                        <div class="mt-3 flex space-x-2">
-                                            <a href="{{ route('padel-sessions.padel-matches.show', [$padelSession, $match]) }}" 
-                                               class="text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 text-sm">
-                                                View Details
+                                            <a href="{{ route('padel-sessions.padel-matches.edit', [$padelSession, $match]) }}" 
+                                               class="text-gray-400 hover:text-gray-600 dark:text-gray-500 dark:hover:text-gray-300 transition-colors duration-200"
+                                               title="Edit Match">
+                                                ✏️
                                             </a>
-                                            @if($padelSession->created_by === auth()->id())
-                                                <a href="{{ route('padel-sessions.padel-matches.edit', [$padelSession, $match]) }}" 
-                                                   class="text-indigo-600 hover:text-indigo-800 dark:text-indigo-400 dark:hover:text-indigo-300 text-sm">
-                                                    Edit
-                                                </a>
-                                            @endif
                                         </div>
+                                        <table class="w-full">
+                                            <tr>
+                                                <td class="w-1/3 align-top">
+                                                    <div class="text-sm">
+                                                        <p class="text-gray-500 dark:text-gray-400 font-medium mb-2 text-left">Team A</p>
+                                                    </div>
+                                                </td>
+                                                <td class="w-1/3 align-top text-center">
+                                                    <div class="text-sm">
+                                                        <p class="text-gray-500 dark:text-gray-400 font-medium mb-2 ">Score</p>
+                                                    </div>
+                                                </td>
+                                                <td class="w-1/3 align-top">
+                                                    <div class="text-sm">
+                                                        <p class="text-gray-500 dark:text-gray-400 font-medium mb-2 text-right">Team B</p>
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <td class="w-1/3 align-top">
+                                                    <div class="space-y-1">
+                                                        @foreach($match->matchPlayers->where('team', 'A') as $player)
+                                                            <p class="text-gray-900 dark:text-gray-100 text-left">{{ $player->user->name }}</p>
+                                                        @endforeach
+                                                    </div> 
+                                                </td>
+                                                <td class="w-1/3 align-middle text-center">
+                                                    <p class="text-2xl font-bold text-gray-900 dark:text-gray-100">
+                                                        {{ $match->getScoreString() }}
+                                                    </p>
+                                                </td>
+                                                <td class="w-1/3 align-top">
+                                                    <div class="space-y-1">
+                                                        @foreach($match->matchPlayers->where('team', 'B') as $player)
+                                                            <p class="text-gray-900 dark:text-gray-100 text-right">{{ $player->user->name }}</p>
+                                                        @endforeach
+                                                    </div> 
+                                                </td>
+                                            </tr>
+                                        </table>
                                     </div>
                                 @endforeach
                             </div>

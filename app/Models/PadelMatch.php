@@ -31,9 +31,6 @@ class PadelMatch extends Model
         'match_number',
         'team_a_score',
         'team_b_score',
-        'status',
-        'started_at',
-        'completed_at',
     ];
 
     /**
@@ -43,18 +40,14 @@ class PadelMatch extends Model
      */
     protected $casts = [
         'team_a_score' => 'integer',
-        'team_b_score' => 'integer',
-        'started_at' => 'datetime',
-        'completed_at' => 'datetime',
+        'team_b_score' => 'integer'
     ];
 
     /**
-     * Match status constants.
+     * Score validation constants.
      */
-    public const STATUS_PENDING = 'pending';
-    public const STATUS_CONFIRMED = 'confirmed';
-    public const STATUS_CANCELLED = 'cancelled';
-    public const STATUS_COMPLETED = 'completed';
+    public const MIN_SCORE = 0;
+    public const MAX_SCORE = 20;
 
     /**
      * Get the players in this match.
@@ -83,30 +76,6 @@ class PadelMatch extends Model
     }
 
     /**
-     * Scope to get only confirmed matches.
-     */
-    public function scopeConfirmed($query)
-    {
-        return $query->where('status', self::STATUS_CONFIRMED);
-    }
-
-    /**
-     * Scope to get only pending matches.
-     */
-    public function scopePending($query)
-    {
-        return $query->where('status', self::STATUS_PENDING);
-    }
-
-    /**
-     * Scope to get completed matches.
-     */
-    public function scopeCompleted($query)
-    {
-        return $query->where('status', self::STATUS_COMPLETED);
-    }
-
-    /**
      * Scope to get matches by session.
      */
     public function scopeForSession($query, $sessionId)
@@ -115,30 +84,10 @@ class PadelMatch extends Model
     }
 
     /**
-     * Check if the match is completed.
-     */
-    public function isCompleted(): bool
-    {
-        return $this->status === self::STATUS_COMPLETED;
-    }
-
-    /**
-     * Check if the match is in progress.
-     */
-    public function isInProgress(): bool
-    {
-        return $this->status === self::STATUS_CONFIRMED && $this->started_at !== null;
-    }
-
-    /**
      * Get the winning team.
      */
     public function getWinningTeam(): ?string
     {
-        if (!$this->isCompleted()) {
-            return null;
-        }
-
         if ($this->team_a_score > $this->team_b_score) {
             return MatchPlayer::TEAM_A;
         }
@@ -155,6 +104,41 @@ class PadelMatch extends Model
      */
     public function getScoreString(): string
     {
-        return "{$this->team_a_score} - {$this->team_b_score}";
+        return "{$this->team_a_score}:{$this->team_b_score}";
+    }
+
+    /**
+     * Validate if a score is within the acceptable range.
+     */
+    public static function isValidScore(int $score): bool
+    {
+        return $score >= self::MIN_SCORE && $score <= self::MAX_SCORE;
+    }
+
+    /**
+     * Validate if both scores are valid.
+     */
+    public function hasValidScores(): bool
+    {
+        return self::isValidScore($this->team_a_score) && self::isValidScore($this->team_b_score);
+    }
+
+    /**
+     * Get the next match number for a session.
+     */
+    public static function getNextMatchNumber(int $sessionId): int
+    {
+        $maxMatchNumber = self::where('session_id', $sessionId)->max('match_number');
+        return ($maxMatchNumber ?? 0) + 1;
+    }
+
+    /**
+     * Check if a match number already exists in a session.
+     */
+    public static function matchNumberExists(int $sessionId, int $matchNumber): bool
+    {
+        return self::where('session_id', $sessionId)
+                   ->where('match_number', $matchNumber)
+                   ->exists();
     }
 } 
