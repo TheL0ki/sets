@@ -29,6 +29,13 @@ class PadelSessionController extends Controller
             ->orderBy('padel_sessions.start_time')
             ->paginate(10);
 
+        // Get past sessions where user is a participant
+        $pastSessions = $user->sessions()
+            ->where('padel_sessions.status', PadelSession::STATUS_CONFIRMED)
+            ->where('padel_sessions.end_time', '<', now())
+            ->orderBy('padel_sessions.start_time')
+            ->paginate(10);
+
         // Get pending invitations for the user
         $pendingInvitations = $user->sessionInvitations()
             ->where('status', SessionInvitation::STATUS_PENDING)
@@ -36,7 +43,7 @@ class PadelSessionController extends Controller
             ->orderBy('created_at')
             ->get();
 
-        return view('padel-sessions.index', compact('mySessions', 'pendingInvitations'));
+        return view('padel-sessions.index', compact('mySessions', 'pendingInvitations', 'pastSessions'));
     }
 
     /**
@@ -205,5 +212,65 @@ class PadelSessionController extends Controller
         return redirect()
             ->route('dashboard')
             ->with('success', 'Invitation declined successfully.');
+    }
+
+    /**
+     * Update the location of a padel session.
+     */
+    public function updateLocation(Request $request, PadelSession $padelSession): RedirectResponse
+    {
+        $user = $request->user();
+
+        // Check if user is a participant
+        if (!$padelSession->isParticipant($user)) {
+            return redirect()
+                ->route('padel-sessions.show', $padelSession)
+                ->with('error', 'Only participants can change the session location.');
+        }
+
+        // Validate the request
+        $request->validate([
+            'location' => 'required|string|max:255',
+        ]);
+
+        // Update the session location
+        $padelSession->update([
+            'location' => $request->location,
+        ]);
+
+        return redirect()
+            ->route('padel-sessions.show', $padelSession)
+            ->with('success', 'Session location updated successfully.');
+    }
+
+    /**
+     * Mark a padel session as completed.
+     */
+    public function markAsCompleted(Request $request, PadelSession $padelSession): RedirectResponse
+    {
+        $user = $request->user();
+
+        // Check if user is a participant
+        if (!$padelSession->isParticipant($user)) {
+            return redirect()
+                ->route('padel-sessions.show', $padelSession)
+                ->with('error', 'Only participants can mark the session as completed.');
+        }
+
+        // Check if session is in confirmed status
+        if ($padelSession->status !== PadelSession::STATUS_CONFIRMED) {
+            return redirect()
+                ->route('padel-sessions.show', $padelSession)
+                ->with('error', 'Only confirmed sessions can be marked as completed.');
+        }
+
+        // Update the session status to completed
+        $padelSession->update([
+            'status' => PadelSession::STATUS_COMPLETED,
+        ]);
+
+        return redirect()
+            ->route('padel-sessions.show', $padelSession)
+            ->with('success', 'Session marked as completed successfully.');
     }
 }

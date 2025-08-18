@@ -6,7 +6,7 @@
     </x-slot>
 
     <div class="py-12">
-        <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
+        <div class="max-w-7xl mx-auto sm:px-6 lg:px-8 space-y-8">
             <!-- Pending Invitations -->
             @if($pendingInvitations->count() > 0)
                 <div class="bg-white dark:bg-gray-800 overflow-hidden shadow-sm sm:rounded-lg mb-8">
@@ -59,16 +59,13 @@
                             @foreach($mySessions as $session)
                                 <div class="border border-gray-200 dark:border-gray-700 rounded-lg p-4">
                                     <div class="flex justify-between items-start mb-2">
-                                        <h4 class="font-medium text-gray-900 dark:text-gray-100">{{ $session->location }}</h4>
+                                        <h4 class="font-medium text-gray-900 dark:text-gray-100">{{ $session->start_time->toEuropeanDateTime() }} - {{ $session->end_time->toEuropeanTime() }}</h4>
                                         <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200">
                                             Confirmed
                                         </span>
                                     </div>
                                     <p class="text-sm text-gray-500 dark:text-gray-400 mb-2">
-                                        {{ $session->start_time->toEuropeanDateTime() }} - {{ $session->end_time->toEuropeanTime() }}
-                                    </p>
-                                    <p class="text-sm text-gray-500 dark:text-gray-400 mb-3">
-                                        {{ $session->getParticipantCount() }} / 4 players
+                                        {{ $session->location }}
                                     </p>
                                     <div class="flex space-x-2">
                                         <a href="{{ route('padel-sessions.show', $session) }}" 
@@ -94,6 +91,34 @@
                             <p class="text-gray-500 dark:text-gray-400 mb-6">Sessions will be created automatically based on availability and confirmed when all players accept.</p>
                         </div>
                     @endif
+                </div>
+            </div>
+
+            <!-- Past Sessions -->
+            <div class="bg-white dark:bg-gray-800 overflow-hidden shadow-sm sm:rounded-lg">
+                <div class="p-6">
+                    <h3 class="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">My Past Sessions</h3>
+                    @if($pastSessions->count() > 0)
+                        <div class="space-y-4">
+                            @foreach($pastSessions as $session)
+                                <div class="border border-gray-200 dark:border-gray-700 rounded-lg p-4">
+                                    <div class="flex justify-between items-start mb-2">
+                                        <h4 class="font-medium text-gray-900 dark:text-gray-100">{{ $session->start_time->toEuropeanDateTime() }} - {{ $session->end_time->toEuropeanTime() }}</h4>
+                                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200">
+                                            Confirmed
+                                        </span>
+                                    </div>
+                                    <p class="text-sm text-gray-500 dark:text-gray-400 mb-2">
+                                        {{ $session->location }}
+                                    </p>
+                                </div>
+                            @endforeach
+                        </div>
+                    @endif
+
+                    <div class="mt-6">
+                        {{ $pastSessions->links() }}
+                    </div>
                 </div>
             </div>
         </div>

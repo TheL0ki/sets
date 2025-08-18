@@ -21,9 +21,6 @@
                     <x-nav-link :href="route('padel-sessions.index')" :active="request()->routeIs('padel-sessions.*')">
                         {{ __('Sessions') }}
                     </x-nav-link>
-                    <x-nav-link :href="route('matchmaking.index')" :active="request()->routeIs('matchmaking.*')">
-                        {{ __('Matchmaking') }}
-                    </x-nav-link>
                     <x-nav-link :href="route('player-ignores.index')" :active="request()->routeIs('player-ignores.*')">
                         {{ __('Ignored Players') }}
                     </x-nav-link>

@@ -46,12 +46,12 @@
                                     <div class="border border-gray-200 dark:border-gray-700 rounded-lg p-4">
                                         <div class="flex justify-between items-start">
                                             <div>
-                                                <h4 class="font-medium text-gray-900 dark:text-gray-100">{{ $session->location }}</h4>
+                                                <h4 class="font-medium text-gray-900 dark:text-gray-100">{{ $session->start_time->toEuropeanDateTime() }} - {{ $session->end_time->toEuropeanTime() }}</h4>
                                                 <p class="text-sm text-gray-500 dark:text-gray-400">
-                                                    {{ $session->start_time->toEuropeanDateTime() }} - {{ $session->end_time->toEuropeanTime() }}
+                                                    {{ $session->location }}
                                                 </p>
                                                 <p class="text-sm text-gray-500 dark:text-gray-400">
-                                                    Status: <span class="capitalize">{{ $session->status }}</span>
+                                                    Status: <x-statusBadge :status="$session->status" />
                                                 </p>
                                             </div>
                                             <a href="{{ route('padel-sessions.show', $session) }}" 
@@ -80,7 +80,7 @@
                                     <div class="flex justify-between items-start mb-3">
                                         <h4 class="font-medium text-gray-900 dark:text-gray-100">
                                             <a href="{{ route('padel-sessions.show', $match->session) }}" class="text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300">
-                                                {{ $match->session->location }} - {{ $match->session->start_time->toEuropeanDate() }}
+                                                {{ $match->session->start_time->toEuropeanDate() }} |  {{ $match->session->start_time->toEuropeanTime() }} - {{ $match->session->end_time->toEuropeanTime() }}
                                             </a>
                                         </h4>
                                     </div>

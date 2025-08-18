@@ -38,17 +38,16 @@ Route::middleware('auth')->group(function () {
         ->name('padel-sessions.join');
     Route::delete('/padel-sessions/{padelSession}/leave', [PadelSessionController::class, 'leave'])
         ->name('padel-sessions.leave');
+    Route::patch('/padel-sessions/{padelSession}/location', [PadelSessionController::class, 'updateLocation'])
+        ->name('padel-sessions.update-location');
+    Route::patch('/padel-sessions/{padelSession}/complete', [PadelSessionController::class, 'markAsCompleted'])
+        ->name('padel-sessions.complete');
 
     // Session Invitation routes
     Route::post('/session-invitations/{invitation}/accept', [PadelSessionController::class, 'acceptInvitation'])
         ->name('session-invitations.accept');
     Route::post('/session-invitations/{invitation}/decline', [PadelSessionController::class, 'declineInvitation'])
         ->name('session-invitations.decline');
-
-    // Matchmaking routes
-    Route::get('/matchmaking', [MatchmakingController::class, 'index'])->name('matchmaking.index');
-    Route::post('/matchmaking/run', [MatchmakingController::class, 'run'])->name('matchmaking.run');
-    Route::get('/matchmaking/stats', [MatchmakingController::class, 'stats'])->name('matchmaking.stats');
 
     // Padel Match routes (nested under sessions)
     Route::resource('padel-sessions.padel-matches', PadelMatchController::class);

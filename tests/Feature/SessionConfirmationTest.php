@@ -217,3 +217,77 @@ test('centralized checkAndUpdateConfirmationStatus method works correctly', func
     $session->checkAndUpdateConfirmationStatus();
     $this->assertEquals(PadelSession::STATUS_CONFIRMED, $session->fresh()->status);
 });
+
+test('participant availabilities are marked as unavailable when session is confirmed', function () {
+    $user1 = User::factory()->create();
+    $user2 = User::factory()->create();
+    $user3 = User::factory()->create();
+    $user4 = User::factory()->create();
+
+    $session = PadelSession::factory()->create([
+        'status' => PadelSession::STATUS_PENDING,
+        'start_time' => now()->addDay()->setTime(14, 0), // 2 PM tomorrow
+        'end_time' => now()->addDay()->setTime(16, 0),   // 4 PM tomorrow
+    ]);
+
+    // Create availabilities for users that overlap with session time
+    $availability1 = \App\Models\Availability::create([
+        'user_id' => $user1->id,
+        'start_time' => now()->addDay()->setTime(13, 0), // 1 PM tomorrow
+        'end_time' => now()->addDay()->setTime(17, 0),   // 5 PM tomorrow
+        'is_available' => true,
+    ]);
+
+    $availability2 = \App\Models\Availability::create([
+        'user_id' => $user2->id,
+        'start_time' => now()->addDay()->setTime(14, 30), // 2:30 PM tomorrow
+        'end_time' => now()->addDay()->setTime(15, 30),   // 3:30 PM tomorrow
+        'is_available' => true,
+    ]);
+
+    // Create 4 invitations
+    $invitations = [
+        SessionInvitation::create([
+            'session_id' => $session->id,
+            'user_id' => $user1->id,
+            'status' => SessionInvitation::STATUS_PENDING,
+        ]),
+        SessionInvitation::create([
+            'session_id' => $session->id,
+            'user_id' => $user2->id,
+            'status' => SessionInvitation::STATUS_PENDING,
+        ]),
+        SessionInvitation::create([
+            'session_id' => $session->id,
+            'user_id' => $user3->id,
+            'status' => SessionInvitation::STATUS_PENDING,
+        ]),
+        SessionInvitation::create([
+            'session_id' => $session->id,
+            'user_id' => $user4->id,
+            'status' => SessionInvitation::STATUS_PENDING,
+        ]),
+    ];
+
+    // Accept all invitations
+    foreach ($invitations as $invitation) {
+        $invitation->update([
+            'status' => SessionInvitation::STATUS_ACCEPTED,
+            'responded_at' => now(),
+        ]);
+    }
+
+    // Verify availabilities are still available before confirmation
+    $this->assertTrue($availability1->fresh()->is_available);
+    $this->assertTrue($availability2->fresh()->is_available);
+
+    // Confirm the session
+    $session->checkAndUpdateConfirmationStatus();
+
+    // Verify session is confirmed
+    $this->assertEquals(PadelSession::STATUS_CONFIRMED, $session->fresh()->status);
+
+    // Verify availabilities are now unavailable
+    $this->assertFalse($availability1->fresh()->is_available);
+    $this->assertFalse($availability2->fresh()->is_available);
+});

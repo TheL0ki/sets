@@ -163,6 +163,14 @@ class PadelSession extends Model
     }
 
     /**
+     * Check if a user is a participant in this session.
+     */
+    public function isParticipant(User $user): bool
+    {
+        return $this->participants()->where('user_id', $user->id)->exists();
+    }
+
+    /**
      * Check if the session has enough players for at least one match.
      */
     public function hasEnoughPlayers(): bool
@@ -222,6 +230,7 @@ class PadelSession extends Model
 
         if ($acceptedCount === 4) {
             $this->update(['status' => self::STATUS_CONFIRMED]);
+            $this->markParticipantAsUnavailable();
             $this->sendConfirmationNotifications();
         }
     }
@@ -248,6 +257,26 @@ class PadelSession extends Model
                 $session->sendCancellationNotifications();
             }
         });
+    }
+
+    /**
+     * Mark participant availabilities as unavailable for the session time.
+     */
+    public function markParticipantAsUnavailable(): void
+    {
+        $acceptedInvitations = $this->invitations()
+            ->with('user')
+            ->where('status', SessionInvitation::STATUS_ACCEPTED)
+            ->get();
+
+        foreach ($acceptedInvitations as $invitation) {
+            // Update all availabilities that overlap with the session time
+            $invitation->user->availabilities()
+                ->where('start_time', '<', $this->end_time)
+                ->where('end_time', '>', $this->start_time)
+                ->where('is_available', true)
+                ->update(['is_available' => false]);
+        }
     }
 
     /**

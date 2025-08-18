@@ -27,6 +27,12 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/availabilities/overlapping', [AvailabilityController::class, 'overlapping'])
         ->name('api.availabilities.overlapping');
 
+    // Padel Session API routes
+    Route::patch('/padel-sessions/{padelSession}/location', [\App\Http\Controllers\Api\PadelSessionController::class, 'updateLocation'])
+        ->name('api.padel-sessions.update-location');
+    Route::patch('/padel-sessions/{padelSession}/complete', [\App\Http\Controllers\Api\PadelSessionController::class, 'markAsCompleted'])
+        ->name('api.padel-sessions.complete');
+
     // Player Ignore API routes
     Route::get('/player-ignores', [PlayerIgnoreController::class, 'apiIndex'])->name('api.player-ignores.index');
     Route::post('/player-ignores', [PlayerIgnoreController::class, 'apiStore'])->name('api.player-ignores.store');
