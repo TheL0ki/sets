@@ -25,6 +25,20 @@ class ProfileUpdateRequest extends FormRequest
                 'max:255',
                 Rule::unique(User::class)->ignore($this->user()->id),
             ],
+            'phone' => ['nullable', 'string', 'max:255'],
+            'email_visible' => ['nullable', 'boolean'],
+            'phone_visible' => ['nullable', 'boolean'],
         ];
+    }
+
+    /**
+     * Prepare the data for validation.
+     */
+    protected function prepareForValidation(): void
+    {
+        $this->merge([
+            'email_visible' => $this->has('email_visible'),
+            'phone_visible' => $this->has('phone_visible'),
+        ]);
     }
 }

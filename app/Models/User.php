@@ -2,7 +2,7 @@
 
 namespace App\Models;
 
-// use Illuminate\Contracts\Auth\MustVerifyEmail;
+use Illuminate\Contracts\Auth\MustVerifyEmail;
 use App\Models\PlayerIgnore;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
@@ -12,7 +12,7 @@ use Illuminate\Notifications\Notifiable;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 
-class User extends Authenticatable
+class User extends Authenticatable implements MustVerifyEmail
 {
     /** @use HasFactory<\Database\Factories\UserFactory> */
     use HasFactory, Notifiable;
@@ -26,18 +26,20 @@ class User extends Authenticatable
         'name',
         'email',
         'password',
-        'skill_level',
         'preferred_frequency_per_week',
         'preferred_frequency_per_month',
         'min_session_length_hours',
         'max_session_length_hours',
         'phone',
+        'phone_visible',
+        'email_visible',
         'is_active',
         'email_notifications_enabled',
         'session_invitation_notifications',
         'session_confirmation_notifications',
         'session_reminder_notifications',
         'session_cancellation_notifications',
+        'onboarding_completed',
     ];
 
     /**
@@ -66,7 +68,18 @@ class User extends Authenticatable
             'session_confirmation_notifications' => 'boolean',
             'session_reminder_notifications' => 'boolean',
             'session_cancellation_notifications' => 'boolean',
+            'phone_visible' => 'boolean',
+            'email_visible' => 'boolean',
+            'onboarding_completed' => 'boolean',
         ];
+    }
+
+    /**
+     * Send the email verification notification.
+     */
+    public function sendEmailVerificationNotification()
+    {
+        $this->notify(new \App\Notifications\CustomVerifyEmailNotification);
     }
 
     /**
@@ -289,5 +302,25 @@ class User extends Authenticatable
 
         // If all checks pass, send the notification
         parent::sendNotification($notification);
+    }
+
+    public function isPhoneVisible(): bool
+    {
+        return $this->phone_visible;
+    }
+
+    public function isEmailVisible(): bool
+    {
+        return $this->email_visible;
+    }
+    
+    public function getVisiblePhone(): string
+    {
+        return $this->phone;
+    }
+
+    public function getVisibleEmail(): string
+    {
+        return $this->email;
     }
 }

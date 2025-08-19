@@ -7,6 +7,7 @@ namespace App\Http\Controllers;
 use App\Models\Availability;
 use App\Models\PadelMatch;
 use App\Models\PadelSession;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
 
@@ -15,9 +16,14 @@ class DashboardController extends Controller
     /**
      * Display the user's dashboard.
      */
-    public function index(Request $request): View
+    public function index(Request $request): View|RedirectResponse
     {
         $user = $request->user();
+
+        // Check if user needs to complete onboarding
+        if (!$user->onboarding_completed) {
+            return redirect()->route('onboarding.welcome');
+        }
 
         // Get upcoming sessions where user is a participant
         $upcomingSessions = $user->sessions()

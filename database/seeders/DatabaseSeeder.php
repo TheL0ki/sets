@@ -14,7 +14,7 @@ class DatabaseSeeder extends Seeder
     public function run(): void
     {
         User::factory()->count(4)->create();
-        // Insert sample availabilities for the first 3 users
+        // Insert sample availabilities for all users
         $users = User::all();
 
         $availabilities = [
