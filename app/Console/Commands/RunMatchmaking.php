@@ -28,7 +28,9 @@ class RunMatchmaking extends Command
      */
     public function handle(MatchmakingService $matchmakingService): int
     {
-        $this->info('🏓 Starting SETS Matchmaking Algorithm...');
+        $timestamp = now()->format('d.m.Y H:i:s');
+        $this->line('=' . str_repeat('=', 60));
+        $this->info("🏓 Starting SETS Matchmaking Algorithm - {$timestamp}");
         $this->newLine();
 
         if ($this->option('dry-run')) {
@@ -49,8 +51,8 @@ class RunMatchmaking extends Command
      * Display the matchmaking results
      */
     private function displayResults(array $results): void
-    {
-        $this->info('📊 Matchmaking Results:');
+    {        
+        $this->info("📊 Matchmaking Results");
         $this->newLine();
 
         if ($this->option('dry-run')) {
@@ -76,5 +78,6 @@ class RunMatchmaking extends Command
         } else {
             $this->warn('⚠️  No sessions were created. Check the errors above.');
         }
+        $this->line('=' . str_repeat('=', 60));    
     }
 }

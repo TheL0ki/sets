@@ -34,7 +34,7 @@
 
             <x-text-input id="password_confirmation" class="block mt-1 w-full"
                             type="password"
-                            name="password_confirmation" required autocomplete="new-password" placeholder="Confrim Password" />
+                            name="password_confirmation" required autocomplete="new-password" placeholder="Confirm Password" />
 
             <x-input-error :messages="$errors->get('password_confirmation')" class="mt-2" />
         </div>
