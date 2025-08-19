@@ -22,7 +22,6 @@ return new class extends Migration
             // Indexes for performance
             $table->index(['start_time', 'end_time']);
             $table->index('status');
-            $table->index('created_by');
         });
     }
 
