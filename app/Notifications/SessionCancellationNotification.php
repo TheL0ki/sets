@@ -39,7 +39,7 @@ class SessionCancellationNotification extends Notification implements ShouldQueu
      */
     public function toMail(object $notifiable): MailMessage
     {
-        $dashboardUrl = URL::signedRoute('dashboard');
+        $dashboardUrl = route('dashboard');
 
         $participants = $this->session->participants()
             ->with('user')

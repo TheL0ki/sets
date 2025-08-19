@@ -23,7 +23,13 @@ Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
 // SETS API Routes
 Route::middleware('auth:sanctum')->group(function () {
     // Availability API routes
-    Route::apiResource('availabilities', AvailabilityController::class);
+    Route::apiResource('availabilities', AvailabilityController::class)->names([
+        'index' => 'api.availabilities.index',
+        'store' => 'api.availabilities.store',
+        'show' => 'api.availabilities.show',
+        'update' => 'api.availabilities.update',
+        'destroy' => 'api.availabilities.destroy',
+    ]);
     Route::get('/availabilities/overlapping', [AvailabilityController::class, 'overlapping'])
         ->name('api.availabilities.overlapping');
 

@@ -13,7 +13,7 @@ use Illuminate\Support\Facades\Route;
 
 Route::get('/', [DashboardController::class, 'index'])
     ->middleware(['auth', 'verified'])
-    ->name('dashboard');
+    ->name('home');
 
 Route::get('/dashboard', [DashboardController::class, 'index'])
     ->middleware(['auth', 'verified'])
